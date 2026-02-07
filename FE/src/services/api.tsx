@@ -8,10 +8,6 @@ const api = axios.create({
   },
 });
 
-export const generateArt = async (payload: {
-  text: string;
-  pages: number;
-  style: string;
-}) => {
+export const generateArt = async (payload: { text: string; style: string }) => {
   return api.post("/generate", payload);
 };

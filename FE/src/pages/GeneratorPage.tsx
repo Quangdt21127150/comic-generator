@@ -21,7 +21,6 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 
 export default function GeneratorPage() {
   const [text, setText] = useState("");
-  const [pages, setPages] = useState(3);
   const [style, setStyle] = useState("tranh-dong-ho");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
@@ -121,7 +120,6 @@ export default function GeneratorPage() {
     try {
       const payload = {
         text: text.trim(),
-        pages,
         style,
       };
 
@@ -140,8 +138,6 @@ export default function GeneratorPage() {
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", pb: 6 }}>
       <Toolbar
-        pages={pages}
-        setPages={setPages}
         style={style}
         setStyle={setStyle}
         isGenerating={isGenerating}

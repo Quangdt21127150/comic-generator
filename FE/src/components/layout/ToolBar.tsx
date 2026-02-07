@@ -11,8 +11,6 @@ import FileUploadButton from "../common/FileUploadButton";
 import LoadingButton from "../common/LoadingButton";
 
 type Props = {
-  pages: number;
-  setPages: (v: number) => void;
   style: string;
   setStyle: (v: string) => void;
   isGenerating: boolean;
@@ -23,12 +21,10 @@ type Props = {
 const styles = [
   { value: "tranh-dong-ho", label: "Tranh Đông Hồ" },
   { value: "manga", label: "Manga" },
-  { value: "pixel", label: "Pixel Art" },
+  { value: "pixel", label: "Pixel" },
 ];
 
 export default function AppToolbar({
-  pages,
-  setPages,
   style,
   setStyle,
   isGenerating,
@@ -47,45 +43,6 @@ export default function AppToolbar({
         </Typography>
 
         <FileUploadButton onFileSelected={onFileSelected} />
-
-        <FormControl variant="outlined" size="small" sx={{ minWidth: 100 }}>
-          <InputLabel
-            sx={{
-              color: "white",
-              fontWeight: 500,
-              "&.Mui-focused": { color: "#ff8e53" },
-            }}
-          >
-            Số trang
-          </InputLabel>
-          <Select
-            value={pages}
-            label="Số trang"
-            onChange={(e) => setPages(Number(e.target.value))}
-            sx={{
-              color: "white",
-              transition: "all 0.2s ease",
-              "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: "rgba(255, 255, 255, 0.5)",
-              },
-              "&:hover .MuiOutlinedInput-notchedOutline": {
-                borderColor: "white !important",
-                borderWidth: "2px !important",
-              },
-              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                borderColor: "#ff8e53 !important",
-                borderWidth: "2px",
-              },
-              ".MuiSvgIcon-root": { color: "white" },
-            }}
-          >
-            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-              <MenuItem key={n} value={n}>
-                {n}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
 
         <FormControl variant="outlined" size="small" sx={{ minWidth: 140 }}>
           <InputLabel
