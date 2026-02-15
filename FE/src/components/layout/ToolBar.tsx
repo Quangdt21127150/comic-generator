@@ -19,7 +19,7 @@ type Props = {
 };
 
 const styles = [
-  { value: "tranh-dong-ho", label: "Tranh Đông Hồ" },
+  { value: "dong-ho", label: "Dong Ho painting" },
   { value: "manga", label: "Manga" },
   { value: "pixel", label: "Pixel" },
 ];
@@ -52,11 +52,11 @@ export default function AppToolbar({
               "&.Mui-focused": { color: "#ff8e53" },
             }}
           >
-            Phong cách
+            Style
           </InputLabel>
           <Select
             value={style}
-            label="Phong cách"
+            label="Style"
             onChange={(e) => setStyle(e.target.value)}
             sx={{
               color: "white",

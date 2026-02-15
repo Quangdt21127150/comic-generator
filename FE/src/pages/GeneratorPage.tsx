@@ -13,17 +13,26 @@ import { generateArt } from "../services/api";
 import * as pdfjsLib from "pdfjs-dist";
 import type { TextItem } from "pdfjs-dist/types/src/display/api";
 import mammoth from "mammoth";
+import axios from "axios";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
   import.meta.url,
 ).toString();
 
+interface GeneratedImage {
+  page: number;
+  status: "success" | "error";
+  image_base64?: string;
+  error?: string;
+}
+
 export default function GeneratorPage() {
   const [text, setText] = useState("");
-  const [style, setStyle] = useState("tranh-dong-ho");
+  const [style, setStyle] = useState("dong-ho");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
+  const [generatedImages, setGeneratedImages] = useState<string[]>([]);
 
   const [toast, setToast] = useState<{
     open: boolean;
@@ -69,7 +78,7 @@ export default function GeneratorPage() {
     if (!file) return;
 
     setIsLoadingFile(true);
-    setText("Đang đọc file...");
+    setText("Reading input file...");
 
     try {
       let extractedText = "";
@@ -116,6 +125,7 @@ export default function GeneratorPage() {
     }
 
     setIsGenerating(true);
+    setGeneratedImages([]);
 
     try {
       const payload = {
@@ -124,12 +134,48 @@ export default function GeneratorPage() {
       };
 
       const response = await generateArt(payload);
+      const data = response.data as { images: GeneratedImage[] };
 
-      console.log("API response:", response.data);
-      showToast("Generate thành công! Kiểm tra console.", "success");
-    } catch (error) {
+      if (data.images && Array.isArray(data.images)) {
+        const successfulImages = data.images
+          .filter(
+            (img): img is GeneratedImage & { image_base64: string } =>
+              img.status === "success" && typeof img.image_base64 === "string",
+          )
+          .map((img) => img.image_base64);
+
+        if (successfulImages.length > 0) {
+          setGeneratedImages(successfulImages);
+          showToast(
+            `Đã tạo thành công ${successfulImages.length} ảnh!`,
+            "success",
+          );
+        } else {
+          const errorMsgs = data.images
+            .filter(
+              (img): img is GeneratedImage & { error: string } =>
+                img.status === "error" && typeof img.error === "string",
+            )
+            .map((img) => img.error)
+            .join("\n");
+
+          showToast(errorMsgs || "Không tạo được ảnh nào", "error");
+        }
+      } else {
+        showToast("Lỗi khi gọi server", "error");
+      }
+    } catch (error: unknown) {
       console.error("Generate error:", error);
-      showToast("Có lỗi khi gọi API.", "error");
+
+      let errMsg = "Lỗi không xác định";
+      if (error instanceof Error) {
+        errMsg = error.message;
+      }
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
+        errMsg = error.response.data.message;
+      }
+
+      showToast(`Có lỗi khi gọi API: ${errMsg}`, "error");
     } finally {
       setIsGenerating(false);
     }
@@ -168,28 +214,59 @@ export default function GeneratorPage() {
           )}
 
           <TextField
-            label={`Nhập cốt truyện (${text.trim() ? text.trim().split(/\s+/).length : 0}/1000 từ)`}
+            label={`Enter the storyline (${text.trim() ? text.trim().split(/\s+/).length : 0}/1000 words)`}
             multiline
             rows={14}
             fullWidth
             variant="outlined"
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, 5000))}
-            placeholder="Nhập cốt truyện..."
+            placeholder="Enter the storyline..."
             disabled={isLoadingFile}
           />
         </Paper>
 
-        <Box sx={{ mt: 5, textAlign: "center", color: "text.secondary" }}>
+        <Box sx={{ mt: 5, textAlign: "center" }}>
           {isGenerating ? (
             <>
               <CircularProgress size={60} thickness={4} />
               <Typography variant="h6" sx={{ mt: 3 }}>
-                Generating...
+                Generating images...
               </Typography>
             </>
+          ) : generatedImages.length > 0 ? (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 4,
+                mt: 2,
+                width: "100%",
+              }}
+            >
+              {generatedImages.map((base64, index) => (
+                <Box
+                  key={index}
+                  component="img"
+                  src={`data:image/png;base64,${base64}`}
+                  alt={`Comic page ${index + 1}`}
+                  sx={{
+                    width: "100%",
+                    maxWidth: "800px",
+                    borderRadius: 2,
+                    boxShadow: 4,
+                    border: "1px solid",
+                    borderColor: "divider",
+                    bgcolor: "background.paper",
+                  }}
+                />
+              ))}
+            </Box>
           ) : (
-            <Typography variant="body2">Nhấn Generate để bắt đầu</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Press Generate to begin.
+            </Typography>
           )}
         </Box>
       </Box>
