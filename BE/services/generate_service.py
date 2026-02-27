@@ -80,9 +80,6 @@ Do NOT add anything outside the 3 prompts themselves.
             if p.strip()
         ]
 
-        if len(prompts) < 3:
-            raise ValueError(f"Expected 3 prompts, got {len(prompts)}")
-
         return prompts
 
     except Exception as e:

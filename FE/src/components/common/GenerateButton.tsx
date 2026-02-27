@@ -7,7 +7,7 @@ type Props = {
   disabled?: boolean;
 };
 
-export default function LoadingButton({ loading, onClick, disabled }: Props) {
+export default function GenerateButton({ loading, onClick, disabled }: Props) {
   return (
     <Button
       variant="contained"
