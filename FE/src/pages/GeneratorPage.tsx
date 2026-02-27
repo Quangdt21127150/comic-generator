@@ -7,6 +7,8 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
+  IconButton,
+  alpha,
 } from "@mui/material";
 import Toolbar from "../components/layout/ToolBar";
 import { generateArt } from "../services/api";
@@ -14,6 +16,9 @@ import * as pdfjsLib from "pdfjs-dist";
 import type { TextItem } from "pdfjs-dist/types/src/display/api";
 import mammoth from "mammoth";
 import axios from "axios";
+import DownloadIcon from "@mui/icons-material/Download";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -181,6 +186,35 @@ export default function GeneratorPage() {
     }
   };
 
+  const handleDownloadAll = async () => {
+    if (generatedImages.length === 0) return;
+
+    const zip = new JSZip();
+
+    generatedImages.forEach((base64, index) => {
+      const byteString = atob(base64);
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      const blob = new Blob([ab], { type: "image/png" });
+      zip.file(`comic-page-${index + 1}.png`, blob);
+    });
+
+    try {
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      saveAs(zipBlob, "comic-full.zip");
+      showToast(
+        `Đã tải xuống comic (${generatedImages.length} trang)`,
+        "success",
+      );
+    } catch (err) {
+      console.error(err);
+      showToast("Lỗi khi tạo file ZIP", "error");
+    }
+  };
+
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", pb: 6 }}>
       <Toolbar
@@ -189,6 +223,8 @@ export default function GeneratorPage() {
         isGenerating={isGenerating}
         onGenerate={handleGenerate}
         onFileSelected={handleFileSelected}
+        generatedImages={generatedImages}
+        onDownloadAll={handleDownloadAll}
       />
 
       <Box sx={{ mx: "auto", mt: 4, px: 2 }}>
@@ -240,27 +276,59 @@ export default function GeneratorPage() {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: 4,
-                mt: 2,
+                gap: 5,
+                mt: 3,
                 width: "100%",
               }}
             >
               {generatedImages.map((base64, index) => (
                 <Box
                   key={index}
-                  component="img"
-                  src={`data:image/png;base64,${base64}`}
-                  alt={`Comic page ${index + 1}`}
                   sx={{
+                    position: "relative",
                     width: "100%",
-                    maxWidth: "800px",
+                    maxWidth: "820px",
                     borderRadius: 2,
+                    overflow: "hidden",
                     boxShadow: 4,
                     border: "1px solid",
                     borderColor: "divider",
                     bgcolor: "background.paper",
+                    "&:hover .download-btn": {
+                      opacity: 1,
+                      transform: "translateY(0)",
+                    },
                   }}
-                />
+                >
+                  <img
+                    src={`data:image/png;base64,${base64}`}
+                    alt={`Comic page ${index + 1}`}
+                    style={{ width: "100%", display: "block" }}
+                  />
+                  <IconButton
+                    className="download-btn"
+                    size="small"
+                    onClick={() => {
+                      const link = document.createElement("a");
+                      link.href = `data:image/png;base64,${base64}`;
+                      link.download = `comic-page-${index + 1}.png`;
+                      link.click();
+                    }}
+                    sx={{
+                      position: "absolute",
+                      top: 12,
+                      right: 12,
+                      opacity: 0,
+                      transform: "translateY(-8px)",
+                      transition: "all 0.2s ease",
+                      bgcolor: alpha("#000", 0.5),
+                      color: "white",
+                      "&:hover": { bgcolor: alpha("#000", 0.75) },
+                    }}
+                  >
+                    <DownloadIcon fontSize="small" />
+                  </IconButton>
+                </Box>
               ))}
             </Box>
           ) : (

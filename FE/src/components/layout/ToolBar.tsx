@@ -8,7 +8,8 @@ import {
   MenuItem,
 } from "@mui/material";
 import FileUploadButton from "../common/FileUploadButton";
-import LoadingButton from "../common/LoadingButton";
+import GenerateButton from "../common/GenerateButton";
+import DownloadButton from "../common/DownloadButton";
 
 type Props = {
   style: string;
@@ -16,6 +17,8 @@ type Props = {
   isGenerating: boolean;
   onGenerate: () => void;
   onFileSelected: (file: File) => void;
+  generatedImages: string[];
+  onDownloadAll: () => void;
 };
 
 const styles = [
@@ -30,6 +33,8 @@ export default function AppToolbar({
   isGenerating,
   onGenerate,
   onFileSelected,
+  generatedImages,
+  onDownloadAll,
 }: Props) {
   return (
     <AppBar position="static" elevation={3}>
@@ -83,10 +88,19 @@ export default function AppToolbar({
           </Select>
         </FormControl>
 
-        <LoadingButton
+        <GenerateButton
           loading={isGenerating}
           onClick={onGenerate}
           disabled={!isGenerating && false}
+        />
+
+        <DownloadButton
+          variant="text"
+          size="medium"
+          disabled={generatedImages.length === 0 || isGenerating}
+          onClick={onDownloadAll}
+          label="Download Comic"
+          tooltip="Download Comic"
         />
       </Toolbar>
     </AppBar>
