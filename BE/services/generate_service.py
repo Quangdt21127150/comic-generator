@@ -76,7 +76,7 @@ Do NOT add anything outside the 3 prompts themselves.
         content = response.choices[0].message.content.strip()
         prompts = [
             p.strip() + "\n" + description
-            for p in content.split("**Prompt ")
+            for p in content.split("Prompt ")
             if p.strip()
         ]
 
@@ -94,8 +94,8 @@ def generate_images(request: GenerateRequest) -> dict:
             KAGGLE_API_URL, json={"prompts": prompts}, timeout=1800
         )
         response.raise_for_status()
-        return response.json()
-        # return {"status": "success", "prompts": prompts}
+        images = response.json()["images"]
+        return {"images": images, "prompts": prompts}
 
     except requests.exceptions.HTTPError as e:
         return {
